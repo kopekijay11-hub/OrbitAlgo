@@ -23,7 +23,7 @@ The point of the boundary is not secrecy for its own sake — it is that the eng
 | | |
 |---|---|
 | **System type** | Autonomous multi-strategy algorithmic trading platform |
-| **Scope** | 24 registered symbols — precious metals, energy, equity indices, major & Canadian-dollar forex — traded on a multi-timeframe platform spanning 5-minute to 12-hour bars and everything in between; live execution runs on the hourly and 4-hour engines today, with certified coverage being extended across the full range; the research corpus spans seven timeframes and is being extended to ten |
+| **Scope** | 24 registered symbols — precious metals, energy, equity indices, major & Canadian-dollar forex — on a multi-timeframe platform spanning 5-minute to 12-hour bars and everything in between: live execution on the hourly and 4-hour engines, a built 15-minute engine one gate-flag from live, and research certifying coverage across the full range; the research corpus spans seven timeframes and is being extended to ten |
 | **Main components** | Strategy engines (ten families) · walk-forward research pipeline · idea foundry (governed strategy generation) · market-data accessor over a checksummed corpus · ML layer (observer + shadow specialists) · risk layer with hard circuit breakers · MetaTrader 5 execution bridge · supervision stack (watchdog, bridge guardian, dashboard) |
 | **Runtime environment** | Python on Linux (WSL2) bridged to a Windows-hosted MetaTrader 5 terminal; systemd-supervised services |
 | **Validation methodology** | Sealed SELECT → VALIDATE → HOLDOUT protocol; every trial charged to an auditable ledger; family-wise (Šidák) significance correction before any result is called evidence |
