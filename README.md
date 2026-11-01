@@ -23,7 +23,7 @@ The point of the boundary is not secrecy for its own sake — it is that the eng
 | | |
 |---|---|
 | **System type** | Autonomous multi-strategy algorithmic trading platform |
-| **Scope** | 24 registered symbols — precious metals, energy, equity indices, major & Canadian-dollar forex — traded on hourly and 4-hour timeframes; the research corpus spans seven timeframes and is being extended to ten |
+| **Scope** | 24 registered symbols — precious metals, energy, equity indices, major & Canadian-dollar forex — traded on a multi-timeframe platform spanning 5-minute to 12-hour bars and everything in between; live execution runs on the hourly and 4-hour engines today, with certified coverage being extended across the full range; the research corpus spans seven timeframes and is being extended to ten |
 | **Main components** | Strategy engines (ten families) · walk-forward research pipeline · idea foundry (governed strategy generation) · market-data accessor over a checksummed corpus · ML layer (observer + shadow specialists) · risk layer with hard circuit breakers · MetaTrader 5 execution bridge · supervision stack (watchdog, bridge guardian, dashboard) |
 | **Runtime environment** | Python on Linux (WSL2) bridged to a Windows-hosted MetaTrader 5 terminal; systemd-supervised services |
 | **Validation methodology** | Sealed SELECT → VALIDATE → HOLDOUT protocol; every trial charged to an auditable ledger; family-wise (Šidák) significance correction before any result is called evidence |
@@ -43,7 +43,7 @@ The point of the boundary is not secrecy for its own sake — it is that the eng
 
 ## What it is
 
-A fully autonomous trading system that researches, validates, and executes strategies across **24 registered symbols** — precious metals (gold, silver, platinum, palladium, copper), energy (crude and refined products), equity indices (German and Japanese benchmarks), and major & Canadian-dollar forex pairs — on hourly and 4-hour timeframes, quoted end-to-end in the broker's native instrument symbols via MetaTrader 5. The execution bridge is broker-agnostic by design: any MetaTrader 5 terminal can sit on the execution side.
+A fully autonomous trading system that researches, validates, and executes strategies across **24 registered symbols** — precious metals (gold, silver, platinum, palladium, copper), energy (crude and refined products), equity indices (German and Japanese benchmarks), and major & Canadian-dollar forex pairs — across a multi-timeframe range spanning 5-minute to 12-hour bars, with live execution seated on the hourly and 4-hour engines, quoted end-to-end in the broker's native instrument symbols via MetaTrader 5. The execution bridge is broker-agnostic by design: any MetaTrader 5 terminal can sit on the execution side.
 
 The system runs end-to-end without human intervention: market data ingestion, signal generation across **ten strategy families**, an ML specialist layer, risk management with hard circuit breakers, order execution through a MetaTrader 5 bridge, a live monitoring dashboard, and automated alerting. It currently operates on a demo account by design: promotion to live capital is gated on clean out-of-sample evidence, under governance the system was specifically built to enforce. That discipline is the point of the engineering.
 
