@@ -51,6 +51,37 @@ flowchart LR
 
 **Idea foundry (research layer).** A governed generation system that mints strategy candidates from a finite grammar of 12,420 configurations, names each one permanently before testing, charges it to the trial ledger at generation, and archives every failure permanently. Its output enters the same sealed SELECT → VALIDATE → HOLDOUT funnel as a hand-written hypothesis; a candidate reaches the book only through a protocol PASS and an operator seating decision. Its first full programme (2,000 candidates, pre-registered, zero holdout budget consumed) completed in October 2026; the second programme's grammar adds risk-profile bundles, three further timeframes, the FX-major universe, external mechanism gates, a candlestick family, and a fenced 5-minute certification block — with generation deduplication and family-coverage quotas enforced mechanically, the first programme's autopsy findings built into the machinery.
 
+## The research pipeline
+
+The desk above is only half the system. The other half decides what is allowed to trade — and it is drawn the same way it runs: every candidate enters at the register, is charged before it is measured, and meets the sealed segment exactly once.
+
+```mermaid
+flowchart TD
+    REG["Hypothesis register<br/>mechanism stated before testing"] --> GEN
+    CORPUS["Market-data corpus<br/>checksummed · one accessor"] --> FUNNEL
+    EXT["External mechanism data<br/>inventories · positioning · dollar and yields"] --> FUNNEL
+    subgraph GEN["Governed generation — the idea foundry"]
+        GRAM["Finite grammar<br/>12,420 configurations"]
+        NAME["Permanent name minted<br/>before testing"]
+        GRAM --> NAME
+    end
+    GEN -->|"charged to the trial ledger at generation"| FUNNEL
+    subgraph FUNNEL["Sealed validation funnel"]
+        SEL["SELECT<br/>in-sample screen"]
+        VAL["VALIDATE<br/>out-of-sample gates"]
+        HOLD["HOLDOUT<br/>sealed · read exactly once"]
+        SEL --> VAL --> HOLD
+    end
+    FUNNEL -->|"PASS, significance charge cleared"| SEAT["Operator seating decision"]
+    SEAT --> BOOK["Live demo book"]
+    FUNNEL -->|"any other verdict"| ARCH["Permanent failure archive<br/>kept, auditable, never silently re-run"]
+    LEDGER[("Trial ledger<br/>every trial charged")]
+    GEN -.-> LEDGER
+    FUNNEL -.-> LEDGER
+```
+
+A hand-written hypothesis and a foundry candidate travel the same funnel and pay the same charges — the pipeline does not care where an idea came from, only what it survives. The full protocol is specified in [validation.md](validation.md).
+
 ## Failure behaviour
 
 - **A service crashes** → its supervisor restarts it; the book manifest at startup re-states the book; the registry fingerprint in the heartbeat proves the restart did not change what is seated.
