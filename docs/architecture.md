@@ -18,6 +18,7 @@ flowchart LR
         WDG["Watchdog<br/>supervisor + alerting"]
         DASH["Operations dashboard<br/>NiceGUI"]
         DATA["Market-data accessor<br/>sha256-manifested corpus"]
+        HTFG["HTF context gate (shadow)<br/>D1 context · logs would-be vetoes"]
     end
     MT5 <-->|"quotes · orders · positions"| BRIDGE
     BRIDGE <-->|"authenticated REST"| TRK
@@ -26,6 +27,7 @@ flowchart LR
     TRK -->|"heartbeat supervision"| WDG
     GUARD -->|"relaunch on crash (10 s)"| BRIDGE
     TRK --> DASH
+    TRK -->|"shadow evaluation per signal"| HTFG
     WDG -->|"operator alerts"| OP["Operator"]
 ```
 
@@ -39,7 +41,7 @@ flowchart LR
 
 **Market-data layer.** One accessor over a stored corpus of 426 files (39 symbols × 11 timeframes — 5-minute through weekly — 2018–present, with five years of 5-minute bars for every symbol), governed by a sha256 checksum manifest. Every consumer — engines, research pipeline, ML assembly — reads through the same door, in the broker's native instrument symbols. The accessor was proven equivalent to the parsers it replaced before cutover: a 148-capture oracle sweep across every served symbol, zero discrepancies, no fallback path kept. The corpus is maintained by a bridge puller with union-merge semantics: a refresh can only ever add bars to a series, never rewrite or shrink it, and the manifest is updated per series as each write lands. Extensions have since added H2/H3/H6 series for all 39 symbols and derived daily series (426 series total), and a separate external-data store — petroleum inventories, Commitments of Traders positioning, dollar-index and Treasury-yield series — has been built under the same raw-plus-normalised, manifest-verified discipline for the mechanism programmes that consume it.
 
-**Timeframe engines.** The tracker hosts one engine per timeframe track. The H1 engine is primary and live; the H4 engine is live. A 15-minute engine is scaffolded with its new-entries gate disabled — it will trade only configurations the protocol certifies. A 5-minute engine is in design: its data layer is already complete (five years of 5-minute bars across all 39 symbols, served through the accessor), and it will ship dark, then run in shadow mode, before any certified seat. All four tracks are inventoried in a declarative **engine registry**, verified mechanically against the code by a checker script. The 4-hour engine carries structured miss-visibility logging — its decision checkpoints emit structured events for evaluated non-entries — after an audit traced a zero-activity window to checkpoints that returned silently. The 15-minute engine's evaluation path is audit-certified; what it lacks is not machinery but provenance, and a sealed re-validation (budgeted, significance-charged) is specified before its gate can open.
+**Timeframe engines.** The tracker hosts one engine per timeframe track. The H1 engine is primary and live; the H4 engine is live. A 15-minute engine is scaffolded with its new-entries gate disabled — it will trade only configurations the protocol certifies. A 5-minute engine is in design: its data layer is already complete (five years of 5-minute bars across all 39 symbols, served through the accessor), and it will ship dark, then run in shadow mode, before any certified seat. All four tracks are inventoried in a declarative **engine registry**, verified mechanically against the code by a checker script. The 4-hour engine carries structured miss-visibility logging — its decision checkpoints emit structured events for evaluated non-entries — after an audit traced a zero-activity window to checkpoints that returned silently. The frontier guard (November 2026) generalises that lesson into a standing layer in both live engines: the entry frontier is recomputed from the current data packet on every poll rather than carried as state; every evaluated non-entry emits a structured, reason-coded missed-entry event; when the simulation's newest state and the live frontier diverge, a divergence event records both timestamps and the state is re-synchronised; consecutive divergences escalate to a critical alert. The guard never changes *whether* the engine may fire — the freshness rule is unchanged — it changes whether a non-fire is visible. The 15-minute engine's evaluation path is audit-certified; what it lacks is not machinery but provenance, and a sealed re-validation (budgeted, significance-charged) is specified before its gate can open.
 
 **Watchdog.** An independent supervisor classifying the tracker's state from its heartbeat (live, starting, stuck, starved, dead) with criticals that are never cooldown-suppressed. It also runs the **registry-vs-manifest divergence check**: the live book is compared against the registry continuously, and any arm missing without an explained skip raises a critical alert — detection, logging, and alert delivery all proven by live drills, including a deliberately planted phantom row.
 
@@ -47,9 +49,11 @@ flowchart LR
 
 **Bridge Guardian.** A Windows scheduled task that probes the bridge's health endpoint and relaunches it within 10 seconds of a crash, with a crash-loop stop so a broken bridge cannot spin forever. Proven by a live kill drill. It never alerts — alerting is the watchdog's job alone, so a failure produces exactly one voice.
 
-**Dashboard.** A locally served operations UI: positions, equity, per-arm state, breaker status. Local by design; it is an operator's window, not a public surface.
+**Dashboard.** A locally served operations UI: positions, equity, per-arm state, breaker status — and, since November 2026, a trade chart (candlesticks per symbol/timeframe; entry markers; exit markers carrying each closed trade's result; open positions drawn with entry, stop, and take-profit lines) over a merged live event feed spanning the alert stream and both supervisor logs, with generic rendering for event types it has never seen. Its bridge access is read-only; the chart's markers were verified deal-for-deal against the broker-side ledger before the panel was trusted. Local by design; it is an operator's window, not a public surface.
 
-**Idea foundry (research layer).** A governed generation system that mints strategy candidates from a finite grammar of 12,420 configurations, names each one permanently before testing, charges it to the trial ledger at generation, and archives every failure permanently. Its output enters the same sealed SELECT → VALIDATE → HOLDOUT funnel as a hand-written hypothesis; a candidate reaches the book only through a protocol PASS and an operator seating decision. Its first full programme (2,000 candidates, pre-registered, zero holdout budget consumed) completed in October 2026; the second programme's grammar adds risk-profile bundles, three further timeframes, the FX-major universe, external mechanism gates, a candlestick family, and a fenced 5-minute certification block — with generation deduplication and family-coverage quotas enforced mechanically, the first programme's autopsy findings built into the machinery.
+**Higher-timeframe context gate (shadow).** A pure evaluator hosted by the tracker reads the daily timeframe — two trend reads (close versus its 20-bar average; swing structure) reported separately, plus an RSI stretch band that is context only — under as-of discipline: a bar counts only if it closed before the entry bar opened. Hooks in both live engines evaluate it at the entry-decision point when shadow mode is enabled and emit one structured event per signal carrying the full context and the provisional verdict. It cannot alter firing, sizing, or exits in any mode, and its failure mode is a swallowed exception and a debug log line. It exists to accumulate, on real live signals, the evidence base its own eventual measurement will be judged from.
+
+**Idea foundry (research layer).** A governed generation system that mints strategy candidates from a finite grammar of 97,680 configurations in its second-generation form, names each one permanently before testing, charges it to the trial ledger at generation, and archives every failure permanently. Its output enters the same sealed SELECT → VALIDATE → HOLDOUT funnel as a hand-written hypothesis; a candidate reaches the book only through a protocol PASS and an operator seating decision. Its first full programme (2,000 candidates, pre-registered, zero holdout budget consumed) completed in October 2026, and its second — on the widened grammar, with generation deduplication and family-coverage quotas enforced mechanically — completed in November 2026: 1,949 measured, 171 read against the sealed holdout, zero certified. A third programme is in preparation under redesigned geometry (a smaller cap, a holdout-sample eligibility floor, the cost floor gating at VALIDATE), preceded by a validation stack — an adoption-placebo harness that calibrates the funnel's thresholds on randomized entries, plus purged/embargoed cross-validation and cost-stress diagnostics that inform but never veto — and the second programme's 171 near-miss candidates are paper-tracked forward to a single fixed read point, with interim reporting restricted to process counts.
 
 ## The research pipeline
 
@@ -61,7 +65,7 @@ flowchart TD
     CORPUS["Market-data corpus<br/>checksummed · one accessor"] --> FUNNEL
     EXT["External mechanism data<br/>inventories · positioning · dollar and yields"] --> FUNNEL
     subgraph GEN["Governed generation — the idea foundry"]
-        GRAM["Finite grammar<br/>12,420 configurations"]
+        GRAM["Finite grammar<br/>97,680 configurations"]
         NAME["Permanent name minted<br/>before testing"]
         GRAM --> NAME
     end
@@ -78,6 +82,13 @@ flowchart TD
     LEDGER[("Trial ledger<br/>every trial charged")]
     GEN -.-> LEDGER
     FUNNEL -.-> LEDGER
+    PLAC["Adoption placebo<br/>full funnel on randomized entries<br/>calibrates VALIDATE threshold"]
+    DIAG["Scorecard diagnostics<br/>purged/embargoed CV · cost-stress ladder<br/>inform, never veto"]
+    COH["Forward paper cohort<br/>171 near-miss candidates<br/>single fixed read point"]
+    PLAC -.->|"threshold frozen at pre-registration"| FUNNEL
+    FUNNEL -.-> DIAG
+    FUNNEL -->|"near-miss at holdout"| COH
+    COH -.->|"fresh charged re-registration only"| REG
 ```
 
 A hand-written hypothesis and a foundry candidate travel the same funnel and pay the same charges — the pipeline does not care where an idea came from, only what it survives. The full protocol is specified in [validation.md](validation.md).
