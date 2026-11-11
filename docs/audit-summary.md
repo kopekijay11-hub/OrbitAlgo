@@ -24,6 +24,13 @@ The audit standard — fixed, activated, and *proven* — was applied to a four-
 - **ML parity audit** — a reported train/serve feature skew was investigated to ground truth, refuted on the serving path, and hardened anyway; measured skew across 127 live entries: 0.0. Parity is now guarded by dedicated hermetic tests.
 - **Consolidation sitting** — eight branches merged into main in fixed order, each merge individually CI-verified (nine consecutive green runs), desk invariants identical before and after, the tracker never restarted. The sitting's pre-flight halted on an unexamined local commit and a dirty working tree; both were resolved by inspection and preservation — never by deletion or reset — before the first merge ran.
 
+## November 2026 — full-system audit: FAIL, and the fix campaign
+
+A further full-system audit — execution bridge, both live engines, the research pipeline, and the governance layer — returned a **FAIL** verdict. The engineering was not the failure: the findings were concentrated in evidence and documentation integrity, including strategy arms documented as paper-only that were technically capable of firing, and status documents that no longer matched the code they described. Under this project's rules the verdict stands as returned; grades move only by fixing defects and adding evidence, never by re-arguing the rubric.
+
+The disposition is a ten-item fix campaign, executed as individually specified, independently graded jobs in a frozen order. Closed to date: (1) sealed-holdout authorisation hardened into a single fail-closed choke point with a reservation ledger and per symbol × timeframe spend pooling; (2) a reconciliation census of the trial ledger — every denominator traced to its definition, 129,362 rows verified, the distinct trial-identity count frozen at 35,899 and the family-wise significance bar recomputed at that count. In build: cumulative generation-budget enforcement, after Programme #3's generation overran its budget on a batch-accounting defect (634 charged against 460; holdout never opened; zero certified). A scheduled breaker drill in the same period tripped the drawdown halt on the live demo book, flattened all positions through the breaker path itself, and verified supervised reset and autonomous resumption of entries.
+
+
 ## Findings and how they were dispositioned
 
 A standing backlog tracks every finding with a status the operator can audit. Recent closures illustrate the standard a finding must meet to close — fixed, activated, and *proven*, not merely patched:
